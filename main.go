@@ -62,7 +62,7 @@ func Deserialize(buf []byte) (*types.Message, error) {
 	message.Id = string(m.Id())
 
 	message.Receivers = []string{}
-	for i := 0; i < m.ReceiversLength(); i++ {
+	for i := m.ReceiversLength() - 1; i >= 0; i-- {
 		message.Receivers = append(message.Receivers, string(m.Receivers(i)))
 	}
 
@@ -113,7 +113,7 @@ func serializePhone(b *flatbuffers.Builder, p types.Phone) flatbuffers.UOffsetT 
 
 func deserializeContact(message *model.Message) []types.Contact {
 	contacts := []types.Contact{}
-	for i := 0; i < message.ContactsLength(); i++ {
+	for i := message.ContactsLength() - 1; i >= 0; i-- {
 		c := &model.Contact{}
 		result := message.Contacts(c, i)
 		if result {
@@ -133,9 +133,9 @@ func deserializeContact(message *model.Message) []types.Contact {
 
 func deserializePhone(contact *model.Contact) []types.Phone {
 	phones := []types.Phone{}
-	for j := 0; j < contact.PhonesLength(); j++ {
+	for i := contact.PhonesLength() - 1; i >= 0; i-- {
 		p := &model.Phone{}
-		r := contact.Phones(p, j)
+		r := contact.Phones(p, i)
 		if r {
 			phone := types.Phone{}
 			phone.PhoneType = string(p.PhoneType())
