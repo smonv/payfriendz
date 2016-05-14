@@ -12,37 +12,50 @@ import (
 func Serialize(b *flatbuffers.Builder, message *types.Message) []byte {
 	b.Reset()
 
+	var receivers flatbuffers.UOffsetT
+	var contacts flatbuffers.UOffsetT
+
 	id := b.CreateString(message.Id)
 
-	revs := []flatbuffers.UOffsetT{}
-	for _, receiver := range message.Receivers {
-		revs = append(revs, b.CreateString(receiver))
+	if len(message.Receivers) > 0 {
+
+		revs := []flatbuffers.UOffsetT{}
+		for _, receiver := range message.Receivers {
+			revs = append(revs, b.CreateString(receiver))
+		}
+
+		model.MessageStartReceiversVector(b, len(message.Receivers))
+		for _, rev := range revs {
+			b.PrependUOffsetT(rev)
+		}
+		receivers = b.EndVector(len(message.Receivers))
 	}
 
-	model.MessageStartReceiversVector(b, len(message.Receivers))
-	for _, rev := range revs {
-		b.PrependUOffsetT(rev)
-	}
-	receivers := b.EndVector(len(message.Receivers))
+	if len(message.Contacts) > 0 {
 
-	cOffsets := []flatbuffers.UOffsetT{}
-	for _, contact := range message.Contacts {
-		cOffsets = append(cOffsets, serializeContact(b, contact))
-	}
+		cOffsets := []flatbuffers.UOffsetT{}
+		for _, contact := range message.Contacts {
+			cOffsets = append(cOffsets, serializeContact(b, contact))
+		}
 
-	model.MessageStartContactsVector(b, len(message.Contacts))
-	for _, cOffset := range cOffsets {
-		b.PrependUOffsetT(cOffset)
+		model.MessageStartContactsVector(b, len(message.Contacts))
+		for _, cOffset := range cOffsets {
+			b.PrependUOffsetT(cOffset)
+		}
+		contacts = b.EndVector(len(message.Contacts))
 	}
-	contacts := b.EndVector(len(message.Contacts))
 
 	model.MessageStart(b)
 
 	model.MessageAddId(b, id)
 
-	model.MessageAddReceivers(b, receivers)
+	if len(message.Receivers) > 0 {
+		model.MessageAddReceivers(b, receivers)
+	}
 
-	model.MessageAddContacts(b, contacts)
+	if len(message.Contacts) > 0 {
+		model.MessageAddContacts(b, contacts)
+	}
 
 	m := model.MessageEnd(b)
 
