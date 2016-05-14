@@ -7,12 +7,30 @@ import (
 	types "github.com/secmask/contact"
 )
 
+func TestNotSerializeNilMessage(t *testing.T) {
+	b := flatbuffers.NewBuilder(0)
+	_, err := Serialize(b, nil)
+	if err == nil {
+		t.Fatalf("Should not serialize if message is nil")
+	}
+}
+
+func TestNotDeserializeEmptyBuffer(t *testing.T) {
+	_, err := Deserialize([]byte{})
+	if err == nil {
+		t.Fatalf("Should not deserialize if buffer is empty")
+	}
+}
+
 func TestProcess(t *testing.T) {
 	message := newTestMessage()
 
 	b := flatbuffers.NewBuilder(0)
 
-	data := Serialize(b, message)
+	data, err := Serialize(b, message)
+	if err != nil {
+		t.Fatalf(err.Error())
+	}
 
 	deserMessage, err := Deserialize(data)
 	if err != nil {

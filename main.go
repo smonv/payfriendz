@@ -9,7 +9,11 @@ import (
 	types "github.com/secmask/contact"
 )
 
-func Serialize(b *flatbuffers.Builder, message *types.Message) []byte {
+func Serialize(b *flatbuffers.Builder, message *types.Message) ([]byte, error) {
+	if message == nil {
+		return nil, errors.New("Nil Message")
+	}
+
 	b.Reset()
 
 	var receivers flatbuffers.UOffsetT
@@ -61,7 +65,7 @@ func Serialize(b *flatbuffers.Builder, message *types.Message) []byte {
 
 	b.Finish(m)
 
-	return b.Bytes[b.Head():]
+	return b.Bytes[b.Head():], nil
 }
 
 func Deserialize(buf []byte) (*types.Message, error) {
